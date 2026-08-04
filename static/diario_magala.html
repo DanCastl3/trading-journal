@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bitácora FOTSI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+  :root{
+    --bg:#0a0e14; --panel:#10161f; --panel-2:#141c27; --line:#1f2a38;
+    --cyan:#2dd4bf; --cyan-dim:#1a8f82; --up:#34d399; --down:#f87171;
+    --text:#dce6f0; --muted:#64748b; --amber:#fbbf24;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace;}
+  .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+  header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;
+    border-bottom:1px solid var(--line);padding-bottom:20px;margin-bottom:24px;}
+  .brand-eyebrow{font-size:11px;letter-spacing:.18em;color:var(--cyan);text-transform:uppercase;margin-bottom:6px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;margin:0;color:#fff;letter-spacing:-.01em;}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:6px;}
+  .ticker{display:flex;gap:14px;font-size:11.5px;color:var(--muted);}
+  .ticker b{color:var(--text);}
+
+  .tabs-nav{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--line);}
+  .tab-btn{background:none;border:none;color:var(--muted);font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;font-weight:600;padding:10px 18px;cursor:pointer;border-bottom:2px solid transparent;
+    margin-bottom:-1px;transition:color .15s;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan);}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--line);
+    border:1px solid var(--line);margin-bottom:20px;border-radius:6px;overflow:hidden;}
+  .stat{background:var(--panel);padding:16px 18px;}
+  .stat .lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .stat .val{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;color:#fff;}
+  .stat .val.up{color:var(--up);} .stat .val.down{color:var(--down);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:22px;margin-bottom:26px;}
+  .panel h2{font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 4px;color:#fff;display:flex;align-items:center;gap:8px;}
+  .panel .hint{font-size:11.5px;color:var(--muted);margin-bottom:18px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);display:inline-block;}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .grid.g3{grid-template-columns:repeat(3,1fr);}
+  .grid.g2{grid-template-columns:repeat(2,1fr);}
+  .field label{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:5px;
+    color:var(--text);padding:9px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;outline:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--cyan-dim);}
+  .field textarea{resize:vertical;min-height:54px;}
+  .section-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);
+    margin:20px 0 10px;padding-top:14px;border-top:1px dashed var(--line);}
+  .section-label:first-of-type{border-top:none;padding-top:0;margin-top:16px;}
+
+  .row-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+  button{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;letter-spacing:.03em;
+    border-radius:5px;padding:10px 18px;cursor:pointer;border:1px solid transparent;}
+  .btn-primary{background:var(--cyan);color:#04211d;border-color:var(--cyan);}
+  .btn-primary:hover{background:#4ee3cd;}
+  .btn-ghost{background:transparent;color:var(--muted);border-color:var(--line);}
+  .btn-ghost:hover{color:var(--text);border-color:var(--muted);}
+  .btn-danger{background:transparent;color:var(--down);border-color:#3a1f22;font-size:11px;padding:6px 10px;}
+  .btn-danger:hover{background:#2a1416;}
+
+  .pillrow{display:flex;gap:8px;}
+  .pill{flex:1;text-align:center;padding:9px 0;border:1px solid var(--line);border-radius:5px;
+    font-size:12px;cursor:pointer;color:var(--muted);background:var(--panel-2);user-select:none;}
+  .pill.active-long{background:rgba(52,211,153,.12);border-color:var(--up);color:var(--up);}
+  .pill.active-short{background:rgba(248,113,113,.12);border-color:var(--down);color:var(--down);}
+
+  .log-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .log-head h2{font-family:'Space Grotesk',sans-serif;font-size:17px;color:#fff;margin:0;}
+  .filter-bar{display:flex;gap:8px;align-items:center;}
+  .filter-bar select{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);
+    border-radius:5px;padding:6px 10px;font-size:11.5px;font-family:'IBM Plex Mono',monospace;}
+
+  .trade-card{background:var(--panel);border:1px solid var(--line);border-radius:7px;margin-bottom:10px;overflow:hidden;}
+  .trade-top{display:grid;grid-template-columns:90px 1fr 90px 110px 110px 90px 36px;align-items:center;
+    gap:10px;padding:13px 16px;cursor:pointer;}
+  .trade-top:hover{background:var(--panel-2);}
+  .t-date{font-size:11px;color:var(--muted);}
+  .t-pair{display:flex;align-items:center;gap:8px;}
+  .t-pair b{font-family:'Space Grotesk',sans-serif;color:#fff;font-size:14px;}
+  .dir-tag{font-size:9.5px;letter-spacing:.06em;padding:2px 7px;border-radius:3px;font-weight:700;}
+  .dir-tag.long{background:rgba(52,211,153,.15);color:var(--up);}
+  .dir-tag.short{background:rgba(248,113,113,.15);color:var(--down);}
+  .t-mini{font-size:10.5px;color:var(--muted);}
+  .t-pnl{text-align:right;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;}
+  .t-pnl.up{color:var(--up);} .t-pnl.down{color:var(--down);}
+  .t-pnl.pending{color:var(--amber);font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .chev{color:var(--muted);text-align:center;transition:transform .15s;}
+  .trade-card.open .chev{transform:rotate(180deg);}
+  .trade-detail{max-height:0;overflow:hidden;transition:max-height .2s ease;border-top:1px solid var(--line);}
+  .trade-card.open .trade-detail{max-height:900px;}
+  .detail-inner{padding:16px 18px 18px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:18px;}
+  .dcol .dlbl{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+  .dline{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dotted #1a2330;}
+  .dline span:first-child{color:var(--muted);} .dline span:last-child{color:var(--text);}
+  .notes{grid-column:1/-1;font-size:12px;color:var(--text);background:var(--panel-2);
+    border-radius:5px;padding:10px 12px;border:1px solid var(--line);white-space:pre-wrap;}
+  .notes.empty{color:var(--muted);font-style:italic;}
+  .detail-images{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;}
+  .detail-images img{width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;}
+  .detail-foot{grid-column:1/-1;display:flex;justify-content:space-between;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;}
+  .empty-state .big{font-family:'Space Grotesk',sans-serif;color:var(--text);font-size:16px;margin-bottom:6px;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2);border:1px solid var(--cyan-dim);color:var(--cyan);padding:10px 18px;
+    border-radius:6px;font-size:12.5px;opacity:0;transition:all .25s;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .img-thumb{position:relative;width:64px;height:64px;border-radius:5px;overflow:hidden;border:1px solid var(--line);}
+  .img-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .img-thumb .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);color:var(--down);
+    border:none;border-radius:3px;width:16px;height:16px;font-size:11px;line-height:1;cursor:pointer;padding:0;}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:100;padding:30px;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:92%;max-height:92%;border-radius:6px;box-shadow:0 0 40px rgba(0,0,0,.6);}
+  .lightbox-close{position:absolute;top:18px;right:24px;color:#fff;font-size:26px;cursor:pointer;background:none;border:none;}
+
+  .plan-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .plan-title{font-family:'Space Grotesk',sans-serif;font-size:20px;color:#fff;margin:0;font-weight:600;}
+  .plan-saved-hint{font-size:11px;color:var(--muted);}
+  .plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .plan-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px 20px;position:relative;}
+  .plan-card-wide{grid-column:1/-1;}
+  .plan-card-num{position:absolute;top:14px;right:18px;font-family:'Space Grotesk',sans-serif;
+    font-size:24px;font-weight:700;color:var(--line);}
+  .plan-card-title{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--cyan);
+    font-weight:600;margin-bottom:12px;}
+  .plan-card textarea{width:100%;min-height:90px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:5px;color:var(--text);padding:10px 12px;font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;line-height:1.5;resize:vertical;outline:none;}
+  .plan-card-wide textarea{min-height:70px;}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+  .cal-dow{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center;padding-bottom:6px;}
+  .cal-cell{aspect-ratio:1/0.85;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+    padding:6px 7px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;}
+  .cal-cell.empty{background:transparent;border-color:transparent;}
+  .cal-cell .cal-num{font-size:10.5px;color:var(--muted);}
+  .cal-cell.has-data .cal-num{color:var(--text);}
+  .cal-cell .cal-pnl{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;align-self:flex-end;}
+  .cal-cell .cal-pnl.up{color:var(--up);} .cal-cell .cal-pnl.down{color:var(--down);}
+  .cal-cell.win-day{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);}
+  .cal-cell.loss-day{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);}
+  .cal-cell.today{outline:1px solid var(--cyan);}
+
+  @media (max-width:900px){ .detail-inner{grid-template-columns:1fr 1fr;} }
+  @media (max-width:820px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .grid{grid-template-columns:repeat(2,1fr);}
+    .grid.g3{grid-template-columns:repeat(2,1fr);}
+    .plan-grid{grid-template-columns:1fr;}
+    .trade-top{grid-template-columns:1fr auto;grid-template-areas:"pair pnl" "date chev";}
+    .t-date{grid-area:date;} .t-pair{grid-area:pair;} .t-pnl{grid-area:pnl;}
+    .t-mini:nth-of-type(3),.t-mini:nth-of-type(4){display:none;}
+    .detail-inner{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow">◆ Sistema FOTSI · Fuerza relativa de divisas</div>
+      <h1>Bitácora de operaciones</h1>
+      <div class="sub">Registro de trades bajo la metodología Magalà — FOTSI + EMA 50/100 + ATR×5 · Saxo · MySQL</div>
+    </div>
+    <div class="ticker">
+      <div>◆ <b id="tk-total">0</b> operaciones</div>
+      <div>◆ <b id="tk-open">0</b> abiertas</div>
+    </div>
+  </header>
+
+  <div class="tabs-nav">
+    <button class="tab-btn active" id="tab-btn-bitacora" onclick="switchTab('bitacora')">📊 FOTSI</button>
+    <button class="tab-btn" id="tab-btn-sp500" onclick="switchTab('sp500')">📈 SP500 Pullback</button>
+  </div>
+
+  <div id="tab-bitacora" class="tab-content">
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">P&amp;L neto</div><div class="val" id="s-pnl">$0.00</div></div>
+    <div class="stat"><div class="lbl">Rentabilidad total</div><div class="val" id="s-roi">—</div></div>
+    <div class="stat"><div class="lbl">Win rate</div><div class="val" id="s-wr">—</div></div>
+    <div class="stat"><div class="lbl">Operaciones</div><div class="val" id="s-count">0</div></div>
+    <div class="stat"><div class="lbl">Ganadoras / Perdedoras</div><div class="val" id="s-gp">0 / 0</div></div>
+  </div>
+
+  <div class="panel" style="padding:14px 20px;margin-bottom:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div style="font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;">Capital inicial de referencia</div>
+    <input type="number" id="s-initial-capital" placeholder="ej. 1000" style="max-width:140px;background:var(--panel-2);
+      border:1px solid var(--line);border-radius:5px;color:var(--text);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;">
+    <span style="font-size:11px;color:var(--muted);">Capital actual: <b id="s-cap" style="color:var(--text);">—</b></span>
+  </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span> Reglas de la estrategia FOTSI (Magalà)</h2>
+    <div class="hint">Metodología de fuerza relativa de divisas.</div>
+    <div class="grid g3" style="margin-top:6px;">
+      <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+        <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">1 · Señal</div>
+        <div style="font-size:12.5px;line-height:1.5;">Identifica una divisa sobrecomprada (+50) o sobrevendida (-50) en el FOTSI, y la divisa opuesta más débil/fuerte disponible.</div>
+      </div>
+      <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+        <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">2 · Entrada</div>
+        <div style="font-size:12.5px;line-height:1.5;">Espera el cierre de la vela que confirma el cruce. Entra a mercado en la apertura de la siguiente vela.</div>
+      </div>
+      <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+        <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">3 · Salidas</div>
+        <div style="font-size:12.5px;line-height:1.5;">TP1: cierra 50% al tocar la EMA 50. TP2: cierra el resto al tocar la EMA 100. Mueve el stop a breakeven tras el TP1.</div>
+      </div>
+    </div>
+    <div class="panel" style="background:rgba(45,212,191,.08);border-color:var(--cyan-dim);margin-top:14px;margin-bottom:0;">
+      <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Stop loss</div>
+      <div style="font-size:12.5px;line-height:1.5;">ATR(14) × 5, calculado como precio absoluto (entrada − distancia en compra, entrada + distancia en venta) en el momento exacto de la entrada.</div>
+    </div>
+  </div>
+
+
+  <div class="panel">
+<div class="plan-header">
+      <h2 class="plan-title">Mi plan de trading</h2>
+      <div class="plan-saved-hint" id="plan-saved-hint">Guardado automáticamente</div>
+    </div>
+    <div class="plan-grid">
+      <div class="plan-card">
+        <div class="plan-card-num">01</div>
+        <div class="plan-card-title">Objetivos</div>
+        <textarea id="plan-objetivos" placeholder="¿Qué buscas lograr con esto?"></textarea>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-num">02</div>
+        <div class="plan-card-title">Perfil de riesgo</div>
+        <textarea id="plan-riesgo" placeholder="Capital, % de riesgo por operación, tolerancia a pérdidas"></textarea>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-num">03</div>
+        <div class="plan-card-title">Entrada y salida</div>
+        <textarea id="plan-estrategia" placeholder="Señal de entrada, TP1, TP2"></textarea>
+      </div>
+      <div class="plan-card">
+        <div class="plan-card-num">04</div>
+        <div class="plan-card-title">Gestión de riesgo</div>
+        <textarea id="plan-gestion" placeholder="Stop loss, breakeven, tamaño de posición"></textarea>
+      </div>
+      <div class="plan-card plan-card-wide">
+        <div class="plan-card-num">05</div>
+        <div class="plan-card-title">Seguimiento y evaluación</div>
+        <textarea id="plan-seguimiento" placeholder="Cómo y cuándo revisas tu desempeño"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="calendar-panel">
+    <div class="log-head" style="margin-bottom:14px;">
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:16px;color:#fff;margin:0;">Calendario de resultados</h2>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-ghost" id="cal-prev" style="padding:6px 12px;">‹</button>
+        <div id="cal-label" style="font-size:12.5px;color:var(--text);min-width:130px;text-align:center;font-family:'Space Grotesk',sans-serif;"></div>
+        <button class="btn-ghost" id="cal-next" style="padding:6px 12px;">›</button>
+      </div>
+    </div>
+    <div id="cal-grid" class="cal-grid"></div>
+  </div>
+
+
+  <div class="panel">
+      <h2><span class="dot"></span> Calculadora rápida de posición</h2>
+      <div class="hint">Solo para calcular — no guarda nada. Úsala antes de abrir tu orden en el bróker.</div>
+
+      <div class="section-label" style="margin-top:0;">Datos de la operación</div>
+      <div class="grid g3">
+        <div class="field"><label>Dirección</label>
+          <div class="pillrow" id="calc-dir-pills">
+            <div class="pill" data-dir="long">COMPRA</div>
+            <div class="pill" data-dir="short">VENTA</div>
+          </div>
+        </div>
+        <div class="field"><label>Precio de entrada</label><input type="text" id="c-entry" placeholder="ej. 1,2263"></div>
+        <div class="field"><label>ATR (14) actual</label><input type="text" id="c-atr" placeholder="ej. 0,00083"></div>
+      </div>
+      <div class="grid g3" style="margin-top:14px;">
+        <div class="field"><label>Multiplicador de ATR para el stop</label><input type="number" step="0.5" id="c-mult" value="5"></div>
+        <div class="field"><label>Capital de la cuenta (USD)</label><input type="number" id="c-capital" placeholder="ej. 1000"></div>
+        <div class="field"><label>Riesgo asumido (%)</label><input type="number" step="0.1" id="c-risk" value="2"></div>
+      </div>
+      <div class="grid g3" style="margin-top:14px;">
+        <div class="field"><label>Tamaño de 1 lote estándar (unidades, casi siempre 100,000)</label><input type="number" id="c-lotsize" value="100000"></div>
+      </div>
+
+      <div class="row-actions" style="justify-content:flex-start;margin-top:20px;">
+        <button class="btn-primary" id="btn-calc-quick">⚡ Calcular</button>
+      </div>
+
+      <div id="calc-results" style="display:none;margin-top:24px;">
+        <div class="section-label" style="margin-top:0;">Resultado</div>
+        <div class="stats" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat"><div class="lbl">Precio del stop</div><div class="val" id="r-stop">—</div></div>
+          <div class="stat"><div class="lbl">Riesgo en $</div><div class="val" id="r-risk">—</div></div>
+          <div class="stat"><div class="lbl">Exposición total (unidades)</div><div class="val" id="r-exposure">—</div></div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;background:rgba(251,191,36,.08);border-color:var(--amber);">
+          <div class="dlbl" style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;">
+            ⚠ Esto es lo que escribes en el campo "Volumen" de MT5 — NO las unidades de arriba
+          </div>
+          <div class="dline" style="font-size:15px;"><span>LOTES (posición completa, Opción A)</span><span id="r-lots-full" style="color:var(--amber);font-weight:700;">—</span></div>
+          <div class="dline" style="font-size:15px;"><span>LOTES por cada orden (Opción B, 50%)</span><span id="r-lots-half" style="color:var(--amber);font-weight:700;">—</span></div>
+          <div class="hint" style="margin-top:10px;margin-bottom:0;">1 lote estándar = 100,000 unidades. MT5 casi siempre pide LOTES en el campo de volumen, no unidades — por eso este número es el que realmente importa antes de confirmar la orden.</div>
+        </div>
+
+        <div class="panel" style="margin-top:14px;background:var(--panel-2);">
+          <div class="dlbl" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Opción A — una sola orden (recomendada, menos trabajo)</div>
+          <div class="dline"><span>Cantidad a comprar/vender</span><span id="r-full">—</span></div>
+          <div class="dline"><span>Luego, en TP1 (EMA 50)</span><span>Cierra manualmente el 50% de esta posición</span></div>
+          <div class="dline"><span>En TP2 (EMA 100)</span><span>Cierra el resto, o deja correr con stop en breakeven</span></div>
+        </div>
+        <div class="panel" style="margin-top:14px;background:var(--panel-2);">
+          <div class="dlbl" style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Opción B — dos órdenes separadas desde el inicio</div>
+          <div class="dline"><span>Cantidad por cada orden</span><span id="r-half">—</span></div>
+          <div class="dline"><span>Orden 1 — Take profit</span><span>Precio de tu EMA 50</span></div>
+          <div class="dline"><span>Orden 2 — Take profit</span><span>Precio de tu EMA 100</span></div>
+          <div class="dline"><span>Ambas — Stop loss</span><span id="r-stop2">—</span></div>
+        </div>
+      </div>
+    </div>
+
+  <div class="panel">
+    <h2><span class="dot"></span> Nueva operación</h2>
+    <div class="hint">Completa cada campo con lo que veas en TradingView al momento de la señal.</div>
+    <div id="form-mode-banner" style="display:none;align-items:center;justify-content:space-between;
+        background:rgba(45,212,191,.1);border:1px solid var(--cyan-dim);border-radius:6px;
+        padding:9px 14px;margin-bottom:16px;font-size:12px;color:var(--cyan);">
+      <span id="form-mode-text">Editando operación</span>
+      <button type="button" id="btn-cancel-edit" class="btn-ghost" style="padding:4px 10px;font-size:11px;">Cancelar edición</button>
+    </div>
+
+    <div class="section-label" style="margin-top:0;">Identificación</div>
+    <div class="grid g3">
+      <div class="field"><label>Fecha</label><input type="date" id="f-date"></div>
+      <div class="field"><label>Par operado</label><input type="text" id="f-pair" placeholder="ej. AUDEUR"></div>
+      <div class="field"><label>Timeframe</label>
+        <select id="f-tf">
+          <option>1m</option><option>5m</option><option>15m</option><option>1H</option><option>4H</option><option>D</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="field"><label>Hora de entrada</label><input type="time" id="f-time-entry"></div>
+      <div class="field"><label>Hora de cierre TP1 (EMA 50)</label><input type="time" id="f-time-tp1"></div>
+      <div class="field"><label>Hora de cierre TP2 / final</label><input type="time" id="f-time-tp2"></div>
+    </div>
+    <div class="hint" style="margin-top:8px;">Usa la fecha de arriba. Si cruza la medianoche, se detecta solo.</div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="field"><label>Proveedor de datos / bróker</label>
+        <select id="f-broker">
+          <option>Saxo</option><option>OANDA</option><option>FOREXCOM</option><option>BlackBull Markets</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Señal FOTSI</div>
+    <div class="grid g3">
+      <div class="field"><label>Divisa sobrecomprada/sobrevendida</label><input type="text" id="f-divfuerte" placeholder="ej. AUD +52,23"></div>
+      <div class="field"><label>Divisa opuesta (más débil/fuerte)</label><input type="text" id="f-divdebil" placeholder="ej. EUR -21,20"></div>
+      <div class="field"><label>Dirección de la operación</label>
+        <div class="pillrow" id="f-dir-pills">
+          <div class="pill" data-dir="long">COMPRA (sobreventa)</div>
+          <div class="pill" data-dir="short">VENTA (sobrecompra)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-label">Gestión de riesgo</div>
+    <div class="grid g3">
+      <div class="field"><label>ATR (14) al momento de entrar</label><input type="text" id="f-atr" placeholder="ej. 0,000364"></div>
+      <div class="field"><label>Stop loss (precio absoluto, ATR × 5 desde la entrada)</label><input type="text" id="f-sl" placeholder="ej. 0,61739"></div>
+      <div class="field"><label>Precio de entrada</label><input type="text" id="f-entry" placeholder="ej. 0,61557"></div>
+    </div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="field"><label>EMA 50 (nivel al entrar, referencia)</label><input type="text" id="f-ema50" placeholder="ej. 0,61289"></div>
+      <div class="field"><label>EMA 100 (nivel al entrar, referencia)</label><input type="text" id="f-ema100" placeholder="ej. 0,61213"></div>
+      <div class="field"><label>Capital de la cuenta (USD)</label><input type="number" id="f-capital" placeholder="ej. 1000"></div>
+    </div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="field"><label>Precio real de cierre en TP1 (cuando tocó la EMA 50)</label><input type="text" id="f-close1" placeholder="ej. 0,61289"></div>
+      <div class="field"><label>Precio real de cierre en TP2 (EMA 100, breakeven, o stop ajustado)</label><input type="text" id="f-close2" placeholder="ej. 0,61557 si fue breakeven"></div>
+      <div class="field"><label>Riesgo asumido (% del capital)</label><input type="number" step="0.1" id="f-risk" value="2"></div>
+    </div>
+    <div class="grid g3" style="margin-top:14px;">
+      <div class="field"><label>¿Qué pasó en el segundo tramo?</label>
+        <select id="f-tp2type">
+          <option value="ema100">Llegó a la EMA 100</option>
+          <option value="breakeven">No llegó — cerró en breakeven</option>
+          <option value="sametp1">Cerré el 100% junto con el TP1</option>
+          <option value="adjustedstop">Cerré el 50% restante manualmente a cualquier precio (antes de EMA 100)</option>
+          <option value="stoporig">TP1 sí, pero el otro 50% tocó el stop original (sin breakeven)</option>
+          <option value="fullstop">No llegó ni a TP1 — tocó el stop completo</option>
+          <option value="earlyexit">Cerré el 100% completo manualmente a cualquier precio (antes de EMA 50)</option>
+        </select>
+      </div>
+      <div class="field"><label>Motivo del cierre manual (opcional)</label><input type="text" id="f-stopadjust" placeholder="ej. Vi que no iba a llegar, cerré para no perder"></div>
+      <div class="field" style="display:flex;align-items:flex-end;">
+        <button type="button" class="btn-ghost" id="btn-autocalc" style="width:100%;">⚙ Calcular</button>
+      </div>
+    </div>
+
+    <div class="section-label">Resultado</div>
+    <div class="grid g3">
+      <div class="field"><label>Estado</label>
+        <select id="f-status">
+          <option value="open">Abierta</option>
+          <option value="win">Cerrada — ganadora</option>
+          <option value="loss">Cerrada — perdedora</option>
+          <option value="be">Cerrada — breakeven</option>
+        </select>
+      </div>
+      <div class="field"><label>% de posición cerrada en EMA 50</label><input type="text" id="f-tp1" placeholder="ej. 50% en 0,61289"></div>
+      <div class="field"><label>% de posición cerrada en EMA 100</label><input type="text" id="f-tp2" placeholder="ej. 50% en 0,61213"></div>
+    </div>
+    <div class="grid g2" style="margin-top:14px;">
+      <div class="field"><label>Resultado neto (USD)</label><input type="number" step="0.01" id="f-pnl" placeholder="ej. 8.64"></div>
+      <div class="field"><label>¿Moviste el stop a breakeven tras TP1?</label>
+        <select id="f-be"><option value="no">No</option><option value="si">Sí</option></select>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:14px;">
+      <div class="field"><label>Sesión / horario</label>
+        <select id="f-sesion">
+          <option>Londres–NY (solapamiento)</option><option>Londres</option><option>Nueva York</option>
+          <option>Tokio</option><option>Sídney</option><option>Otra / madrugada</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-label">Notas</div>
+    <div class="field"><textarea id="f-notes" placeholder="Observaciones, errores a corregir, etc."></textarea></div>
+
+    <div class="section-label">Capturas de pantalla</div>
+    <div class="field">
+      <input type="file" id="f-images" accept="image/*" multiple>
+      <div class="hint" style="margin-top:6px;">Se guardan como archivos reales en el servidor (carpeta uploads/).</div>
+      <div id="img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+    </div>
+
+    <div class="row-actions">
+      <button class="btn-ghost" id="btn-clear">Limpiar formulario</button>
+      <button class="btn-primary" id="btn-save">Guardar operación</button>
+    </div>
+  </div>
+
+  <div class="log-head">
+    <h2>Historial</h2>
+    <div class="filter-bar">
+      <button class="btn-ghost" id="btn-export" style="padding:6px 12px;font-size:11.5px;">⬇ Exportar respaldo</button>
+      <button class="btn-ghost" id="btn-import" style="padding:6px 12px;font-size:11.5px;">⬆ Importar respaldo</button>
+      <input type="file" id="import-file" accept="application/json" style="display:none;">
+      <select id="filter-status">
+        <option value="all">Todas</option>
+        <option value="open">Abiertas</option>
+        <option value="win">Ganadoras</option>
+        <option value="loss">Perdedoras</option>
+        <option value="be">Breakeven</option>
+      </select>
+      <select id="filter-pair">
+        <option value="all">Todos los pares</option>
+      </select>
+      <select id="filter-tf">
+        <option value="all">Todos los timeframes</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="log-container"></div>
+
+  </div> <!-- fin tab-bitacora -->
+
+  <div id="tab-sp500" class="tab-content" style="display:none;">
+
+<div class="stats" style="grid-template-columns:repeat(5,1fr);">
+      <div class="stat"><div class="lbl">P&amp;L neto</div><div class="val" id="sp-s-pnl">$0.00</div></div>
+      <div class="stat"><div class="lbl">Rentabilidad total</div><div class="val" id="sp-s-roi">—</div></div>
+      <div class="stat"><div class="lbl">Win rate</div><div class="val" id="sp-s-wr">—</div></div>
+      <div class="stat"><div class="lbl">Operaciones</div><div class="val" id="sp-s-count">0</div></div>
+      <div class="stat"><div class="lbl">Ganadoras / Perdedoras</div><div class="val" id="sp-s-gp">0 / 0</div></div>
+    </div>
+
+    <div class="panel" style="padding:14px 20px;margin-bottom:26px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div style="font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;">Capital inicial de referencia</div>
+      <input type="number" id="sp-s-initial-capital" placeholder="ej. 1000" style="max-width:140px;background:var(--panel-2);
+        border:1px solid var(--line);border-radius:5px;color:var(--text);padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:13px;">
+      <span style="font-size:11px;color:var(--muted);">Capital actual: <b id="sp-s-cap" style="color:var(--text);">—</b></span>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span> Reglas de la estrategia</h2>
+      <div class="hint">Pullback de 3 días en tendencia — inspirada en la metodología de Iván Scherman.</div>
+      <div class="grid g3" style="margin-top:6px;">
+        <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+          <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Regla 1 — Tendencia</div>
+          <div style="font-size:12.5px;line-height:1.5;">El precio debe estar por encima de la SMA200 (tendencia alcista de fondo confirmada).</div>
+        </div>
+        <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+          <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Regla 2 — Entrada</div>
+          <div style="font-size:12.5px;line-height:1.5;">3 cierres consecutivos por debajo del cierre del día anterior (cierre-contra-cierre, no importa el color de la vela). Compra en la apertura del 4° día.</div>
+        </div>
+        <div class="panel" style="background:var(--panel-2);margin-bottom:0;">
+          <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Regla 3 — Salida</div>
+          <div style="font-size:12.5px;line-height:1.5;">Cierra cuando una vela cierra por encima de la SMA5. Se ejecuta en la apertura de la siguiente vela.</div>
+        </div>
+      </div>
+      <div class="panel" style="background:rgba(45,212,191,.08);border-color:var(--cyan-dim);margin-top:14px;margin-bottom:0;">
+        <div class="dlbl" style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Stop loss (no es ATR tradicional)</div>
+        <div style="font-size:12.5px;line-height:1.5;">Promedio del % de cambio diario del cierre de los últimos 14 días. Ese % se aplica sobre tu precio de entrada para calcular la distancia del stop.</div>
+      </div>
+    </div>
+
+    
+    <div class="panel">
+      <div class="plan-header">
+        <h2 class="plan-title" style="font-size:17px;">Mi plan — SP500 Pullback</h2>
+        <div class="plan-saved-hint" id="sp-plan-saved-hint">Guardado automáticamente</div>
+      </div>
+      <div class="plan-grid">
+        <div class="plan-card">
+          <div class="plan-card-num">01</div>
+          <div class="plan-card-title">Objetivos</div>
+          <textarea id="sp-plan-objetivos" placeholder="¿Qué buscas lograr con esta estrategia dentro de tu portafolio?"></textarea>
+        </div>
+        <div class="plan-card">
+          <div class="plan-card-num">02</div>
+          <div class="plan-card-title">Perfil de riesgo</div>
+          <textarea id="sp-plan-riesgo" placeholder="Capital, % de riesgo por operación, tolerancia a pérdidas"></textarea>
+        </div>
+        <div class="plan-card">
+          <div class="plan-card-num">03</div>
+          <div class="plan-card-title">Entrada y salida</div>
+          <textarea id="sp-plan-estrategia" placeholder="Las 3 reglas, resumidas en tus propias palabras"></textarea>
+        </div>
+        <div class="plan-card">
+          <div class="plan-card-num">04</div>
+          <div class="plan-card-title">Gestión de riesgo</div>
+          <textarea id="sp-plan-gestion" placeholder="Cómo calculas el stop, tamaño de posición"></textarea>
+        </div>
+        <div class="plan-card plan-card-wide">
+          <div class="plan-card-num">05</div>
+          <div class="plan-card-title">Seguimiento y evaluación</div>
+          <textarea id="sp-plan-seguimiento" placeholder="Cómo y cuándo revisas tu desempeño en esta estrategia"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="sp-calendar-panel">
+      <div class="log-head" style="margin-bottom:14px;">
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:16px;color:#fff;margin:0;">Calendario de resultados — SP500</h2>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <button class="btn-ghost" id="sp-cal-prev" style="padding:6px 12px;">‹</button>
+          <div id="sp-cal-label" style="font-size:12.5px;color:var(--text);min-width:130px;text-align:center;font-family:'Space Grotesk',sans-serif;"></div>
+          <button class="btn-ghost" id="sp-cal-next" style="padding:6px 12px;">›</button>
+        </div>
+      </div>
+      <div id="sp-cal-grid" class="cal-grid"></div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span> Calculadora de stop loss</h2>
+      <div class="hint">Solo para calcular — no guarda nada.</div>
+      <div class="grid g3">
+        <div class="field"><label>Dirección</label>
+          <div class="pillrow" id="sp-calc-dir-pills">
+            <div class="pill" data-dir="long">COMPRA</div>
+          </div>
+        </div>
+        <div class="field"><label>Precio de entrada</label><input type="text" id="sc-entry" placeholder="ej. 5432.10"></div>
+        <div class="field"><label>% de cambio promedio (14 días)</label><input type="text" id="sc-pct" placeholder="ej. 0.9"></div>
+      </div>
+      <div class="grid g3" style="margin-top:14px;">
+        <div class="field"><label>Capital de la cuenta (USD)</label><input type="number" id="sc-capital" placeholder="ej. 1000"></div>
+        <div class="field"><label>Riesgo asumido (%)</label><input type="number" step="0.1" id="sc-risk" value="1.5"></div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button type="button" class="btn-primary" id="btn-sp-calc" style="width:100%;">⚡ Calcular</button>
+        </div>
+      </div>
+      <div id="sp-calc-results" style="display:none;margin-top:20px;">
+        <div class="stats" style="grid-template-columns:repeat(3,1fr);">
+          <div class="stat"><div class="lbl">Distancia del stop</div><div class="val" id="sr-dist">—</div></div>
+          <div class="stat"><div class="lbl">Precio del stop</div><div class="val" id="sr-stop">—</div></div>
+          <div class="stat"><div class="lbl">Riesgo en $</div><div class="val" id="sr-risk">—</div></div>
+        </div>
+        <div class="panel" style="margin-top:14px;background:var(--panel-2);">
+          <div class="dline"><span>Exposición total (unidades / contratos)</span><span id="sr-exposure">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2><span class="dot"></span> Nueva operación — SP500</h2>
+      <div id="sp-form-mode-banner" style="display:none;align-items:center;justify-content:space-between;
+          background:rgba(45,212,191,.1);border:1px solid var(--cyan-dim);border-radius:6px;
+          padding:9px 14px;margin-bottom:16px;font-size:12px;color:var(--cyan);">
+        <span id="sp-form-mode-text">Editando operación</span>
+        <button type="button" id="sp-btn-cancel-edit" class="btn-ghost" style="padding:4px 10px;font-size:11px;">Cancelar edición</button>
+      </div>
+
+      <div class="section-label" style="margin-top:0;">Identificación</div>
+      <div class="grid g3">
+        <div class="field"><label>Fecha</label><input type="date" id="sf-date"></div>
+        <div class="field"><label>Instrumento</label><input type="text" id="sf-pair" placeholder="ej. SP500 / US500"></div>
+        <div class="field"><label>Proveedor / bróker</label>
+          <select id="sf-broker">
+            <option>OANDA</option><option>Pepperstone</option><option>IC Markets</option><option>FTMO</option><option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid g3" style="margin-top:14px;">
+        <div class="field"><label>Hora de entrada</label><input type="time" id="sf-time-entry"></div>
+        <div class="field"><label>Hora de salida</label><input type="time" id="sf-time-exit"></div>
+        <div class="field"><label>¿Precio por encima de la SMA200?</label>
+          <select id="sf-sma-trend"><option value="si">Sí — tendencia alcista confirmada</option><option value="no">No</option></select>
+        </div>
+      </div>
+
+      <div class="section-label">Gestión de riesgo</div>
+      <div class="grid g3">
+        <div class="field"><label>Precio de entrada</label><input type="text" id="sf-entry" placeholder="ej. 5432.10"></div>
+        <div class="field"><label>% de cambio promedio (14 días)</label><input type="text" id="sf-pct" placeholder="ej. 0.9"></div>
+        <div class="field"><label>Stop loss (precio absoluto)</label><input type="text" id="sf-sl" placeholder="ej. 5387.80"></div>
+      </div>
+      <div class="grid g3" style="margin-top:14px;">
+        <div class="field"><label>Capital de la cuenta (USD)</label><input type="number" id="sf-capital" placeholder="ej. 1000"></div>
+        <div class="field"><label>Riesgo asumido (%)</label><input type="number" step="0.1" id="sf-risk" value="1.5"></div>
+        <div class="field" style="display:flex;align-items:flex-end;">
+          <button type="button" class="btn-ghost" id="sp-btn-autocalc" style="width:100%;">⚙ Calcular resultado neto</button>
+        </div>
+      </div>
+
+      <div class="section-label">Resultado</div>
+      <div class="grid g3">
+        <div class="field"><label>Estado</label>
+          <select id="sf-status">
+            <option value="open">Abierta</option>
+            <option value="win">Cerrada — ganadora</option>
+            <option value="loss">Cerrada — perdedora</option>
+          </select>
+        </div>
+        <div class="field"><label>Motivo de la salida</label>
+          <select id="sf-exit-reason">
+            <option value="sma5">Cerró por encima de la SMA5 (según la regla)</option>
+            <option value="stop">Tocó el stop loss</option>
+            <option value="manual">Cierre manual anticipado</option>
+          </select>
+        </div>
+        <div class="field"><label>Precio real de salida</label><input type="text" id="sf-exitprice" placeholder="ej. 5455.30"></div>
+      </div>
+      <div class="grid g2" style="margin-top:14px;">
+        <div class="field"><label>Resultado neto (USD)</label><input type="number" step="0.01" id="sf-pnl" placeholder="ej. 42.50"></div>
+        <div class="field"><label>Días que tardó la operación</label><input type="number" id="sf-days" placeholder="ej. 5"></div>
+      </div>
+
+      <div class="section-label">Notas</div>
+      <div class="field"><textarea id="sf-notes" placeholder="Observaciones sobre esta operación..."></textarea></div>
+
+      <div class="section-label">Capturas de pantalla</div>
+      <div class="field">
+        <input type="file" id="sf-images" accept="image/*" multiple>
+        <div id="sp-img-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+      </div>
+
+      <div class="row-actions">
+        <button class="btn-ghost" id="sp-btn-clear">Limpiar formulario</button>
+        <button class="btn-primary" id="sp-btn-save">Guardar operación</button>
+      </div>
+    </div>
+
+    <div class="log-head">
+      <h2>Historial — SP500</h2>
+      <div class="filter-bar">
+        <button class="btn-ghost" id="sp-btn-export" style="padding:6px 12px;font-size:11.5px;">⬇ Exportar respaldo</button>
+        <button class="btn-ghost" id="sp-btn-import" style="padding:6px 12px;font-size:11.5px;">⬆ Importar respaldo</button>
+        <select id="sp-filter-status">
+          <option value="all">Todas</option>
+          <option value="open">Abiertas</option>
+          <option value="win">Ganadoras</option>
+          <option value="loss">Perdedoras</option>
+        </select>
+        <select id="sp-filter-pair">
+          <option value="all">Todos los instrumentos</option>
+        </select>
+      </div>
+    </div>
+    <div id="sp-log-container"></div>
+
+  </div> <!-- fin tab-sp500 -->
+</div>
+
+<div class="toast" id="toast">Operación guardada</div>
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox(event)">✕</button>
+  <img id="lightbox-img" src="" alt="Captura ampliada">
+</div>
+
+<script>
+const API = ""; // mismo origen (Flask sirve todo desde localhost:5000)
+let trades = [];
+let selectedDir = null;
+let editingId = null;
+let pendingFiles = []; // File objects reales, pendientes de subir
+let existingImages = []; // imágenes ya subidas (en modo edición)
+
+// ---------- UTILIDADES ----------
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function fmtMoney(v){
+  const n = parseFloat(v);
+  if(isNaN(n)) return null;
+  return (n>=0?'+$':'-$') + Math.abs(n).toFixed(2);
+}
+function buildDateTime(baseDate, timeStr, prevDateTime){
+  if(!baseDate || !timeStr) return null;
+  let dt = new Date(`${baseDate}T${timeStr}`);
+  while(prevDateTime && dt < prevDateTime){ dt = new Date(dt.getTime() + 24*60*60*1000); }
+  return dt;
+}
+function hoursBetweenDates(d1, d2){
+  if(!d1 || !d2) return null;
+  const diff = (d2 - d1) / (1000*60*60);
+  return isNaN(diff) ? null : diff;
+}
+function fmtHours(h){ return h===null ? '—' : h.toFixed(1) + ' h'; }
+
+// ---------- CARGA / GUARDADO VIA API ----------
+async function loadTrades(){
+  try{
+    const res = await fetch(`${API}/api/trades`);
+    trades = await res.json();
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo conectar con el servidor');
+    trades = [];
+  }
+  render();
+  renderSP500();
+}
+
+async function apiCreateTrade(tradeData){
+  const res = await fetch(`${API}/api/trades`, {
+    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(tradeData)
+  });
+  return res.json();
+}
+async function apiUpdateTrade(id, tradeData){
+  const res = await fetch(`${API}/api/trades/${id}`, {
+    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(tradeData)
+  });
+  return res.json();
+}
+async function apiDeleteTrade(id){
+  await fetch(`${API}/api/trades/${id}`, {method:'DELETE'});
+}
+async function apiUploadImages(tradeId, files){
+  if(!files.length) return [];
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+  const res = await fetch(`${API}/api/upload/${tradeId}`, {method:'POST', body: fd});
+  const data = await res.json();
+  return data.images || [];
+}
+async function apiDeleteImage(url){
+  await fetch(`${API}/api/images?url=${encodeURIComponent(url)}`, {method:'DELETE'});
+}
+
+// ---------- DIRECCIÓN (pills) ----------
+document.getElementById('f-dir-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  selectedDir = pill.dataset.dir;
+  [...document.querySelectorAll('.pill')].forEach(p=>p.classList.remove('active-long','active-short'));
+  pill.classList.add(selectedDir === 'long' ? 'active-long' : 'active-short');
+});
+
+document.getElementById('f-date').valueAsDate = new Date();
+
+// ---------- IMÁGENES (previsualización con archivos reales) ----------
+document.getElementById('f-images').addEventListener('change', (e)=>{
+  pendingFiles.push(...[...e.target.files]);
+  renderImagePreview();
+  e.target.value = '';
+});
+function renderImagePreview(){
+  const box = document.getElementById('img-preview');
+  let html = existingImages.map((img,i)=>`
+    <div class="img-thumb">
+      <img src="${img.url}" alt="${img.name}">
+      <button class="rm" onclick="removeExistingImage(${i})">✕</button>
+    </div>`).join('');
+  html += pendingFiles.map((f,i)=>`
+    <div class="img-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="${f.name}">
+      <button class="rm" onclick="removePendingFile(${i})">✕</button>
+    </div>`).join('');
+  box.innerHTML = html;
+}
+function removePendingFile(i){ pendingFiles.splice(i,1); renderImagePreview(); }
+async function removeExistingImage(i){
+  const img = existingImages[i];
+  await apiDeleteImage(img.url);
+  existingImages.splice(i,1);
+  renderImagePreview();
+  showToast('Imagen eliminada');
+}
+function openLightbox(src){
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox(e){ if(e) e.stopPropagation(); document.getElementById('lightbox').classList.remove('show'); }
+
+// ---------- FORMULARIO ----------
+function clearForm(){
+  ['f-pair','f-divfuerte','f-divdebil','f-atr','f-sl','f-entry','f-ema50','f-ema100',
+   'f-close1','f-close2','f-stopadjust','f-capital','f-tp1','f-tp2','f-pnl','f-notes',
+   'f-time-entry','f-time-tp1','f-time-tp2'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-status').value = 'open';
+  document.getElementById('f-be').value = 'no';
+  document.getElementById('f-broker').value = 'Saxo';
+  document.getElementById('f-risk').value = '2';
+  document.getElementById('f-date').valueAsDate = new Date();
+  pendingFiles = [];
+  existingImages = [];
+  renderImagePreview();
+  selectedDir = null;
+  [...document.querySelectorAll('.pill')].forEach(p=>p.classList.remove('active-long','active-short'));
+  exitEditMode();
+}
+function exitEditMode(){
+  editingId = null;
+  document.getElementById('btn-save').textContent = 'Guardar operación';
+  document.getElementById('form-mode-banner').style.display = 'none';
+}
+function editTrade(id){
+  const t = trades.find(x=>x.id===id);
+  if(!t) return;
+  editingId = id;
+
+  document.getElementById('f-date').value = t.date || '';
+  document.getElementById('f-pair').value = t.pair || '';
+  document.getElementById('f-tf').value = t.tf || '15m';
+  document.getElementById('f-broker').value = t.broker || 'Saxo';
+  document.getElementById('f-time-entry').value = t.timeEntry || '';
+  document.getElementById('f-time-tp1').value = t.timeTp1 || '';
+  document.getElementById('f-time-tp2').value = t.timeTp2 || '';
+  document.getElementById('f-divfuerte').value = t.divFuerte || '';
+  document.getElementById('f-divdebil').value = t.divDebil || '';
+  document.getElementById('f-atr').value = t.atr || '';
+  document.getElementById('f-sl').value = t.sl || '';
+  document.getElementById('f-entry').value = t.entry || '';
+  document.getElementById('f-ema50').value = t.ema50 || '';
+  document.getElementById('f-ema100').value = t.ema100 || '';
+  document.getElementById('f-close1').value = t.close1 || '';
+  document.getElementById('f-close2').value = t.close2 || '';
+  document.getElementById('f-stopadjust').value = t.stopAdjust || '';
+  document.getElementById('f-capital').value = t.capital || '';
+  document.getElementById('f-risk').value = t.risk || 2;
+  document.getElementById('f-status').value = t.status || 'open';
+  document.getElementById('f-tp1').value = t.tp1 || '';
+  document.getElementById('f-tp2').value = t.tp2 || '';
+  document.getElementById('f-pnl').value = t.pnl || '';
+  document.getElementById('f-be').value = t.breakeven || 'no';
+  document.getElementById('f-sesion').value = t.sesion || 'Londres–NY (solapamiento)';
+  document.getElementById('f-notes').value = t.notes || '';
+
+  pendingFiles = [];
+  existingImages = t.images ? t.images.slice() : [];
+  renderImagePreview();
+
+  selectedDir = t.dir || null;
+  [...document.querySelectorAll('.pill')].forEach(p=>p.classList.remove('active-long','active-short'));
+  if(selectedDir){
+    const pill = document.querySelector(`.pill[data-dir="${selectedDir}"]`);
+    if(pill) pill.classList.add(selectedDir === 'long' ? 'active-long' : 'active-short');
+  }
+
+  document.getElementById('btn-save').textContent = '✓ Actualizar esta operación';
+  document.getElementById('form-mode-banner').style.display = 'flex';
+  document.getElementById('form-mode-text').textContent = `Editando: ${t.pair} — ${t.date}`;
+  document.querySelector('.panel').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+document.getElementById('btn-clear').addEventListener('click', clearForm);
+document.getElementById('btn-cancel-edit').addEventListener('click', clearForm);
+
+document.getElementById('btn-autocalc').addEventListener('click', ()=>{
+  const entry = parseFloat(document.getElementById('f-entry').value.replace(',','.'));
+  const sl = parseFloat(document.getElementById('f-sl').value.replace(',','.'));
+  const close1 = parseFloat(document.getElementById('f-close1').value.replace(',','.'));
+  const close2 = parseFloat(document.getElementById('f-close2').value.replace(',','.'));
+  const capital = parseFloat(document.getElementById('f-capital').value);
+  const riskPct = parseFloat(document.getElementById('f-risk').value);
+  const tp2type = document.getElementById('f-tp2type').value;
+
+  if(isNaN(entry) || isNaN(sl) || isNaN(capital) || isNaN(riskPct)){ showToast('Faltan datos: entrada, stop, capital o riesgo %'); return; }
+  if(!selectedDir){ showToast('Elige primero la dirección'); return; }
+
+  const stopDist = Math.abs(entry - sl);
+  const stopPct = stopDist / entry;
+  if(stopPct === 0){ showToast('El stop no puede ser igual a la entrada'); return; }
+  const riskUsd = capital * (riskPct/100);
+  const exposure = riskUsd / stopPct;
+
+  if(tp2type === 'fullstop'){
+    document.getElementById('f-pnl').value = (-riskUsd).toFixed(2);
+    document.getElementById('f-status').value = 'loss';
+    document.getElementById('f-tp1').value = 'No llegó — stop completo golpeado';
+    document.getElementById('f-tp2').value = 'No llegó — stop completo golpeado';
+    showToast('Calculado: pérdida total del riesgo asumido');
+    return;
+  }
+
+  if(tp2type === 'earlyexit'){
+    if(isNaN(close1)){ showToast('Falta el precio real donde cerraste toda la posición'); return; }
+    const signEarly = selectedDir === 'long' ? 1 : -1;
+    const moveEarlyPct = ((close1 - entry) / entry) * signEarly;
+    const totalEarly = exposure * moveEarlyPct * 1.0; // 100% de la posición, cerrada de una vez
+    document.getElementById('f-pnl').value = totalEarly.toFixed(2);
+    document.getElementById('f-status').value = totalEarly > 0 ? 'win' : (totalEarly < 0 ? 'loss' : 'be');
+    document.getElementById('f-tp1').value = `100% cerrado anticipadamente al precio real ${document.getElementById('f-close1').value}`;
+    document.getElementById('f-tp2').value = 'Cierre manual del 100% antes de llegar al TP1 (EMA 50)';
+    document.getElementById('f-close2').value = document.getElementById('f-close1').value;
+    showToast(`Calculado: ${totalEarly>=0?'+':''}$${totalEarly.toFixed(2)}`);
+    return;
+  }
+
+  if(isNaN(close1)){ showToast('Falta el precio real de cierre en TP1'); return; }
+  const sign = selectedDir === 'long' ? 1 : -1;
+  const move1Pct = ((close1 - entry) / entry) * sign;
+  const gain1 = exposure * move1Pct * 0.5;
+
+  let gain2 = 0;
+  if(tp2type === 'ema100'){
+    if(isNaN(close2)){ showToast('Falta el precio real de cierre en TP2'); return; }
+    const move2Pct = ((close2 - entry) / entry) * sign;
+    gain2 = exposure * move2Pct * 0.5;
+    document.getElementById('f-tp2').value = `50% cerrado en EMA 100 al precio real ${document.getElementById('f-close2').value}`;
+  } else if(tp2type === 'adjustedstop'){
+    if(isNaN(close2)){ showToast('Falta el precio real de cierre en TP2 (el precio donde tocó el nuevo stop)'); return; }
+    const move2Pct = ((close2 - entry) / entry) * sign;
+    gain2 = exposure * move2Pct * 0.5;
+    const nota = document.getElementById('f-stopadjust').value.trim();
+    document.getElementById('f-tp2').value = `50% restante cerrado manualmente${nota ? ' ('+nota+')' : ''}, al precio real ${document.getElementById('f-close2').value}`;
+  } else if(tp2type === 'sametp1'){
+    gain2 = exposure * move1Pct * 0.5;
+    document.getElementById('f-close2').value = document.getElementById('f-close1').value;
+    if(!document.getElementById('f-time-tp2').value) document.getElementById('f-time-tp2').value = document.getElementById('f-time-tp1').value;
+    document.getElementById('f-tp2').value = `50% restante cerrado junto con TP1, al mismo precio ${document.getElementById('f-close1').value}`;
+  } else if(tp2type === 'stoporig'){
+    gain2 = -riskUsd * 0.5;
+    document.getElementById('f-close2').value = document.getElementById('f-sl').value;
+    document.getElementById('f-tp2').value = `50% restante tocó el stop original (${document.getElementById('f-sl').value}) — nunca se movió a breakeven`;
+    document.getElementById('f-be').value = 'no';
+  } else {
+    gain2 = 0;
+    document.getElementById('f-tp2').value = `50% cerrado en breakeven (${document.getElementById('f-entry').value}) — no llegó a la EMA 100`;
+  }
+
+  const total = gain1 + gain2;
+  document.getElementById('f-pnl').value = total.toFixed(2);
+  document.getElementById('f-tp1').value = `50% cerrado al precio real ${document.getElementById('f-close1').value}`;
+  document.getElementById('f-status').value = total > 0 ? 'win' : (total < 0 ? 'loss' : 'be');
+  showToast(`Calculado: ${total>=0?'+':''}$${total.toFixed(2)}`);
+});
+
+document.getElementById('btn-save').addEventListener('click', async ()=>{
+  const pair = document.getElementById('f-pair').value.trim();
+  if(!pair){ showToast('Falta el par operado'); return; }
+  if(!selectedDir){ showToast('Elige la dirección: compra o venta'); return; }
+
+  const tradeData = {
+    date: document.getElementById('f-date').value,
+    pair: pair.toUpperCase(),
+    tf: document.getElementById('f-tf').value,
+    broker: document.getElementById('f-broker').value,
+    timeEntry: document.getElementById('f-time-entry').value,
+    timeTp1: document.getElementById('f-time-tp1').value,
+    timeTp2: document.getElementById('f-time-tp2').value,
+    dir: selectedDir,
+    divFuerte: document.getElementById('f-divfuerte').value.trim(),
+    divDebil: document.getElementById('f-divdebil').value.trim(),
+    atr: document.getElementById('f-atr').value.trim(),
+    sl: document.getElementById('f-sl').value.trim(),
+    entry: document.getElementById('f-entry').value.trim(),
+    ema50: document.getElementById('f-ema50').value.trim(),
+    ema100: document.getElementById('f-ema100').value.trim(),
+    close1: document.getElementById('f-close1').value.trim(),
+    close2: document.getElementById('f-close2').value.trim(),
+    stopAdjust: document.getElementById('f-stopadjust').value.trim(),
+    capital: document.getElementById('f-capital').value.trim(),
+    risk: document.getElementById('f-risk').value,
+    status: document.getElementById('f-status').value,
+    tp1: document.getElementById('f-tp1').value.trim(),
+    tp2: document.getElementById('f-tp2').value.trim(),
+    pnl: document.getElementById('f-pnl').value.trim(),
+    breakeven: document.getElementById('f-be').value,
+    sesion: document.getElementById('f-sesion').value,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+
+  try{
+    let tradeId = editingId;
+    if(editingId){
+      await apiUpdateTrade(editingId, tradeData);
+    } else {
+      const res = await apiCreateTrade(tradeData);
+      tradeId = res.id;
+    }
+    if(pendingFiles.length){
+      await apiUploadImages(tradeId, pendingFiles);
+    }
+    clearForm();
+    await loadTrades();
+    showToast(editingId ? 'Operación actualizada' : 'Operación guardada');
+  }catch(e){
+    console.error(e);
+    showToast('Error al guardar — revisa que el servidor esté corriendo');
+  }
+});
+
+function dataUrlToFile(dataUrl, filename){
+  const [header, b64] = dataUrl.split(',');
+  const mimeMatch = header.match(/data:(.*?);base64/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const binary = atob(b64);
+  const arr = new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) arr[i] = binary.charCodeAt(i);
+  return new File([arr], filename, {type: mime});
+}
+
+document.getElementById('btn-import').addEventListener('click', ()=>{
+  document.getElementById('import-file').click();
+});
+
+document.getElementById('import-file').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (ev)=>{
+    try{
+      const imported = JSON.parse(ev.target.result);
+      if(!Array.isArray(imported)) throw new Error('Formato inválido');
+
+      const existingIds = new Set(trades.map(t=>t.id));
+      const newOnes = imported.filter(t=>t.id && !existingIds.has(t.id));
+
+      let count = 0;
+      for(const t of imported){
+        if(t.id && existingIds.has(t.id)) continue; // ya existe, se salta
+
+        const tradeData = {
+          id: t.id, strategy: t.strategy || 'fotsi', date: t.date, pair: t.pair, tf: t.tf, broker: t.broker || 'Saxo',
+          timeEntry: t.timeEntry, timeTp1: t.timeTp1, timeTp2: t.timeTp2, dir: t.dir,
+          divFuerte: t.divFuerte, divDebil: t.divDebil, atr: t.atr, sl: t.sl, entry: t.entry,
+          ema50: t.ema50, ema100: t.ema100, close1: t.close1, close2: t.close2, stopAdjust: t.stopAdjust,
+          smaTrendOk: t.smaTrendOk, avgPctChange: t.avgPctChange, exitReason: t.exitReason,
+          capital: t.capital, risk: t.risk || '2', status: t.status, tp1: t.tp1, tp2: t.tp2,
+          pnl: t.pnl, breakeven: t.breakeven, sesion: t.sesion, notes: t.notes,
+          createdAt: t.createdAt
+        };
+
+        await apiCreateTrade(tradeData);
+
+        // Si el respaldo viejo trae imágenes en base64 (dataUrl), las convertimos y subimos
+        if(t.images && t.images.length){
+          const files = t.images
+            .filter(img => img.dataUrl)
+            .map((img, idx) => dataUrlToFile(img.dataUrl, img.name || `imagen_${idx}.png`));
+          if(files.length) await apiUploadImages(t.id, files);
+        }
+        count++;
+      }
+
+      await loadTrades();
+      showToast(`${count} operación(es) importada(s)`);
+    }catch(err){
+      console.error(err);
+      showToast('El archivo no es un respaldo válido');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('filter-status').addEventListener('change', render);
+document.getElementById('filter-pair').addEventListener('change', render);
+document.getElementById('filter-tf').addEventListener('change', render);
+
+document.getElementById('btn-export').addEventListener('click', ()=>{
+  if(trades.length === 0){ showToast('No hay operaciones para exportar'); return; }
+  const blob = new Blob([JSON.stringify(trades, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `respaldo-bitacora-fotsi-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Respaldo descargado');
+});
+
+// Los botones de exportar/importar de la pestaña SP500 usan exactamente la misma lógica
+// (el respaldo siempre incluye TODAS las estrategias juntas, para no tener que manejar dos archivos)
+document.getElementById('sp-btn-export').addEventListener('click', ()=>{
+  document.getElementById('btn-export').click();
+});
+document.getElementById('sp-btn-import').addEventListener('click', ()=>{
+  document.getElementById('import-file').click();
+});
+
+async function deleteTrade(id){
+  await apiDeleteTrade(id);
+  await loadTrades();
+  showToast('Operación eliminada');
+}
+function toggleCard(id){
+  const el = document.querySelector(`.trade-card[data-id="${id}"]`);
+  if(el) el.classList.toggle('open');
+}
+
+// ---------- RENDER ----------
+function render(){
+  const ftrades = trades.filter(t=>(t.strategy||'fotsi')==='fotsi');
+  renderCalendar();
+  if(typeof activeTab==='undefined' || activeTab==='bitacora'){
+    document.getElementById('tk-total').textContent = ftrades.length;
+    document.getElementById('tk-open').textContent = ftrades.filter(t=>t.status==='open').length;
+  }
+
+  const closed = ftrades.filter(t=>t.status!=='open' && t.pnl!=='' && !isNaN(parseFloat(t.pnl)));
+  const wins = closed.filter(t=>parseFloat(t.pnl)>0);
+  const losses = closed.filter(t=>parseFloat(t.pnl)<0);
+  const net = closed.reduce((a,t)=>a+parseFloat(t.pnl),0);
+  const wr = closed.length ? Math.round((wins.length/closed.length)*100) : null;
+
+  const pnlEl = document.getElementById('s-pnl');
+  pnlEl.textContent = (net>=0?'+$':'-$') + Math.abs(net).toFixed(2);
+  pnlEl.className = 'val ' + (net>0?'up':net<0?'down':'');
+  document.getElementById('s-wr').textContent = wr===null ? '—' : wr + '%';
+  document.getElementById('s-count').textContent = ftrades.length;
+  document.getElementById('s-gp').textContent = `${wins.length} / ${losses.length}`;
+
+  const initialCapital = parseFloat(localStorage.getItem('magala-initial-capital'));
+  const roiEl = document.getElementById('s-roi');
+  if(!isNaN(initialCapital) && initialCapital > 0){
+    const roi = (net / initialCapital) * 100;
+    roiEl.textContent = (roi>=0?'+':'') + roi.toFixed(2) + '%';
+    roiEl.className = 'val ' + (roi>0?'up':roi<0?'down':'');
+    document.getElementById('s-cap').textContent = '$' + (initialCapital + net).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else {
+    roiEl.textContent = '—'; roiEl.className = 'val';
+    document.getElementById('s-cap').textContent = '—';
+  }
+
+  // ---- Poblar filtro de pares (con conteo de uso) ----
+  const pairCounts = {};
+  ftrades.forEach(t=>{ if(t.pair) pairCounts[t.pair] = (pairCounts[t.pair]||0) + 1; });
+  const pairSelect = document.getElementById('filter-pair');
+  const currentPairVal = pairSelect.value || 'all';
+  const sortedPairs = Object.keys(pairCounts).sort();
+  pairSelect.innerHTML = '<option value="all">Todos los pares</option>' +
+    sortedPairs.map(p=>`<option value="${p}">${p} (${pairCounts[p]})</option>`).join('');
+  pairSelect.value = sortedPairs.includes(currentPairVal) ? currentPairVal : 'all';
+
+  // ---- Poblar filtro de timeframe (con conteo de uso) ----
+  const tfCounts = {};
+  ftrades.forEach(t=>{ if(t.tf) tfCounts[t.tf] = (tfCounts[t.tf]||0) + 1; });
+  const tfSelect = document.getElementById('filter-tf');
+  const currentTfVal = tfSelect.value || 'all';
+  const sortedTfs = Object.keys(tfCounts).sort();
+  tfSelect.innerHTML = '<option value="all">Todos los timeframes</option>' +
+    sortedTfs.map(tf=>`<option value="${tf}">${tf} (${tfCounts[tf]})</option>`).join('');
+  tfSelect.value = sortedTfs.includes(currentTfVal) ? currentTfVal : 'all';
+
+  const filter = document.getElementById('filter-status').value;
+  const filterPair = pairSelect.value;
+  const filterTf = tfSelect.value;
+  let list = filter==='all' ? ftrades : ftrades.filter(t=>t.status===filter);
+  if(filterPair !== 'all') list = list.filter(t=>t.pair===filterPair);
+  if(filterTf !== 'all') list = list.filter(t=>t.tf===filterTf);
+  const container = document.getElementById('log-container');
+  if(!list.length){
+    container.innerHTML = `<div class="empty-state"><div class="big">Sin operaciones registradas todavía</div>Agrega tu primera operación arriba.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(t=>{
+    const statusTag = {open:'⏳ abierta',win:'ganadora',loss:'perdedora',be:'breakeven'}[t.status];
+    const pnlNum = fmtMoney(t.pnl);
+    let pnlHtml;
+    if(t.status==='open'){ pnlHtml = `<div class="t-pnl pending">⏳ abierta</div>`; }
+    else if(pnlNum){ pnlHtml = `<div class="t-pnl ${parseFloat(t.pnl)>=0?'up':'down'}">${pnlNum}</div>`; }
+    else { pnlHtml = `<div class="t-pnl" style="color:var(--muted);font-size:11px;">${statusTag}</div>`; }
+
+    return `
+    <div class="trade-card" data-id="${t.id}">
+      <div class="trade-top" onclick="toggleCard('${t.id}')">
+        <div class="t-date">${t.date||'—'}</div>
+        <div class="t-pair"><b>${t.pair}</b><span class="dir-tag ${t.dir}">${t.dir==='long'?'COMPRA':'VENTA'}</span></div>
+        <div class="t-mini">${t.tf||'—'}</div>
+        <div class="t-mini">${t.divFuerte? '⚡ '+t.divFuerte : ''}</div>
+        <div class="t-mini">${t.divDebil? '↔ '+t.divDebil : ''}</div>
+        <div></div>
+        ${pnlHtml}
+        <div class="chev">▾</div>
+      </div>
+      <div class="trade-detail">
+        <div class="detail-inner">
+          <div class="dcol">
+            <div class="dlbl">Señal FOTSI</div>
+            <div class="dline"><span>Divisa fuerte/débil</span><span>${t.divFuerte||'—'}</span></div>
+            <div class="dline"><span>Divisa opuesta</span><span>${t.divDebil||'—'}</span></div>
+            <div class="dline"><span>Sesión</span><span>${t.sesion||'—'}</span></div>
+            <div class="dline"><span>Timeframe</span><span>${t.tf||'—'}</span></div>
+            <div class="dline"><span>Proveedor de datos</span><span>${t.broker||'Saxo'}</span></div>
+          </div>
+          <div class="dcol">
+            <div class="dlbl">Horarios</div>
+            <div class="dline"><span>Hora de entrada</span><span>${t.timeEntry||'—'}</span></div>
+            <div class="dline"><span>Hora de cierre TP1</span><span>${t.timeTp1||'—'}</span></div>
+            <div class="dline"><span>Hora de cierre TP2 / final</span><span>${t.timeTp2||'—'}</span></div>
+            <div class="dline"><span>Duración hasta TP1</span><span>${(()=>{const e=buildDateTime(t.date,t.timeEntry);const p1=buildDateTime(t.date,t.timeTp1,e);return fmtHours(hoursBetweenDates(e,p1));})()}</span></div>
+            <div class="dline"><span>Duración total</span><span>${(()=>{const e=buildDateTime(t.date,t.timeEntry);const p1=buildDateTime(t.date,t.timeTp1,e);const p2=buildDateTime(t.date,t.timeTp2,p1||e);return fmtHours(hoursBetweenDates(e,p2));})()}</span></div>
+          </div>
+          <div class="dcol">
+            <div class="dlbl">Gestión de riesgo</div>
+            <div class="dline"><span>Entrada</span><span>${t.entry||'—'}</span></div>
+            <div class="dline"><span>ATR(14)</span><span>${t.atr||'—'}</span></div>
+            <div class="dline"><span>Stop loss (×5 ATR)</span><span>${t.sl||'—'}</span></div>
+            <div class="dline"><span>Capital cuenta</span><span>${t.capital?'$'+t.capital:'—'}</span></div>
+          </div>
+          <div class="dcol">
+            <div class="dlbl">Salidas</div>
+            <div class="dline"><span>EMA 50</span><span>${t.ema50||'—'}</span></div>
+            <div class="dline"><span>EMA 100</span><span>${t.ema100||'—'}</span></div>
+            <div class="dline"><span>TP1 (50%)</span><span>${t.tp1||'—'}</span></div>
+            <div class="dline"><span>TP2 (50% restante)</span><span>${t.tp2||'—'}</span></div>
+            <div class="dline"><span>Stop a breakeven</span><span>${t.breakeven==='si'?'Sí':'No'}</span></div>
+            <div class="dline"><span>Stop ajustado tras TP1</span><span>${t.stopAdjust||'—'}</span></div>
+          </div>
+          <div class="notes ${t.notes?'':'empty'}">${t.notes || 'Sin notas para esta operación.'}</div>
+          ${t.images && t.images.length ? `<div class="detail-images">${t.images.map(img=>`<img src="${img.url}" alt="${img.name}" onclick="event.stopPropagation(); openLightbox('${img.url}')">`).join('')}</div>` : ''}
+          <div class="detail-foot">
+            <button class="btn-ghost" style="padding:6px 12px;font-size:11px;" onclick="event.stopPropagation(); editTrade('${t.id}')">✎ Editar operación</button>
+            <button class="btn-danger" onclick="event.stopPropagation(); deleteTrade('${t.id}')">Eliminar operación</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- CALENDARIO ----------
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+const MONTH_NAMES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOW_NAMES = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+function renderCalendar(){
+  document.getElementById('cal-label').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+  const pnlByDate = {};
+  trades.filter(t=>(t.strategy||'fotsi')==='fotsi').forEach(t=>{
+    if(t.status !== 'open' && t.pnl !== '' && !isNaN(parseFloat(t.pnl))){
+      pnlByDate[t.date] = (pnlByDate[t.date]||0) + parseFloat(t.pnl);
+    }
+  });
+  const firstDay = new Date(calYear, calMonth, 1);
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  let startWeekday = firstDay.getDay() - 1;
+  if(startWeekday < 0) startWeekday = 6;
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let html = DOW_NAMES.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startWeekday;i++){ html += `<div class="cal-cell empty"></div>`; }
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const pnl = pnlByDate[dateStr];
+    let cls = 'cal-cell';
+    if(pnl !== undefined){ cls += pnl >= 0 ? ' has-data win-day' : ' has-data loss-day'; }
+    if(dateStr === todayStr) cls += ' today';
+    const pnlHtml = pnl !== undefined ? `<div class="cal-pnl ${pnl>=0?'up':'down'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div>` : '';
+    html += `<div class="${cls}"><div class="cal-num">${day}</div>${pnlHtml}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+}
+document.getElementById('cal-prev').addEventListener('click', ()=>{ calMonth--; if(calMonth<0){calMonth=11; calYear--;} renderCalendar(); });
+document.getElementById('cal-next').addEventListener('click', ()=>{ calMonth++; if(calMonth>11){calMonth=0; calYear++;} renderCalendar(); });
+
+// ---------- CAPITAL INICIAL ----------
+document.getElementById('s-initial-capital').addEventListener('input', (e)=>{
+  localStorage.setItem('magala-initial-capital', e.target.value);
+  render();
+});
+const savedInitialCapital = localStorage.getItem('magala-initial-capital');
+if(savedInitialCapital) document.getElementById('s-initial-capital').value = savedInitialCapital;
+
+document.getElementById('sp-s-initial-capital').addEventListener('input', (e)=>{
+  localStorage.setItem('sp500-initial-capital', e.target.value);
+  renderSP500();
+});
+const savedSpInitialCapital = localStorage.getItem('sp500-initial-capital');
+if(savedSpInitialCapital) document.getElementById('sp-s-initial-capital').value = savedSpInitialCapital;
+
+
+// ---------- PLAN DE TRADING (via API) ----------
+const PLAN_FIELDS = ['plan-objetivos','plan-riesgo','plan-estrategia','plan-gestion','plan-seguimiento',
+  'sp-plan-objetivos','sp-plan-riesgo','sp-plan-estrategia','sp-plan-gestion','sp-plan-seguimiento'];
+
+const SP_PLAN_DEFAULTS = {
+  'sp-plan-objetivos': 'Segunda estrategia del portafolio, no correlacionada con FOTSI (forex intradía). Buscar diversificar entre lógicas de trading distintas (reversión a la media en índices vs. fuerza de divisas), inspirado en la filosofía de Iván Scherman.',
+  'sp-plan-riesgo': 'Estrategia nueva, aún sin historial real. Empezar con 1% de riesgo por operación (más conservador que el 2% de FOTSI) hasta acumular suficientes operaciones para validar el win rate real.',
+  'sp-plan-estrategia': 'SP500 en tendencia alcista (precio > SMA200). Tras 3 cierres consecutivos por debajo del cierre anterior, comprar en la apertura del 4° día. Cerrar cuando una vela cierra por encima de la SMA5, ejecutando en la apertura de la siguiente.',
+  'sp-plan-gestion': 'Stop loss = promedio del % de cambio diario del cierre de los últimos 14 días, aplicado sobre el precio de entrada. No es ATR tradicional.',
+  'sp-plan-seguimiento': 'Correr el backtest en Pine Script antes de operar en real. Registrar cada operación en la bitácora. Revisar win rate y rentabilidad tras al menos 20-30 operaciones antes de confiar en el sistema.'
+};
+
+async function loadPlan(){
+  try{
+    const res = await fetch(`${API}/api/plan`);
+    const data = await res.json();
+    PLAN_FIELDS.forEach(id=>{
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.value = data[id] || SP_PLAN_DEFAULTS[id] || '';
+    });
+  }catch(e){ console.error('No se pudo cargar el plan', e); }
+}
+async function savePlan(){
+  const data = {};
+  PLAN_FIELDS.forEach(id=>{ const el = document.getElementById(id); if(el) data[id] = el.value; });
+  try{
+    await fetch(`${API}/api/plan`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)});
+    ['plan-saved-hint','sp-plan-saved-hint'].forEach(hid=>{
+      const hint = document.getElementById(hid);
+      if(!hint) return;
+      hint.textContent = 'Guardado ✓';
+      setTimeout(()=>{ hint.textContent = 'Guardado automáticamente'; }, 1500);
+    });
+  }catch(e){ console.error('No se pudo guardar el plan', e); }
+}
+PLAN_FIELDS.forEach(id=>{
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.addEventListener('input', ()=>{
+    clearTimeout(window._planSaveTimeout);
+    window._planSaveTimeout = setTimeout(savePlan, 600);
+  });
+});
+
+let activeTab = 'bitacora';
+function switchTab(tab){
+  activeTab = tab;
+  document.getElementById('tab-bitacora').style.display = tab==='bitacora' ? 'block' : 'none';
+  document.getElementById('tab-sp500').style.display = tab==='sp500' ? 'block' : 'none';
+  document.getElementById('tab-btn-bitacora').classList.toggle('active', tab==='bitacora');
+  document.getElementById('tab-btn-sp500').classList.toggle('active', tab==='sp500');
+  if(tab==='sp500') renderSP500();
+  if(tab==='bitacora') render();
+}
+
+let calcDir = null;
+document.getElementById('calc-dir-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  calcDir = pill.dataset.dir;
+  [...document.querySelectorAll('#calc-dir-pills .pill')].forEach(p=>p.classList.remove('active-long','active-short'));
+  pill.classList.add(calcDir === 'long' ? 'active-long' : 'active-short');
+});
+
+document.getElementById('btn-calc-quick').addEventListener('click', ()=>{
+  const entry = parseFloat(document.getElementById('c-entry').value.replace(',','.'));
+  const atr = parseFloat(document.getElementById('c-atr').value.replace(',','.'));
+  const mult = parseFloat(document.getElementById('c-mult').value);
+  const capital = parseFloat(document.getElementById('c-capital').value);
+  const risk = parseFloat(document.getElementById('c-risk').value);
+  const lotSize = parseFloat(document.getElementById('c-lotsize').value) || 100000;
+
+  if(isNaN(entry) || isNaN(atr) || isNaN(mult) || isNaN(capital) || isNaN(risk)){
+    showToast('Faltan datos por llenar'); return;
+  }
+  if(!calcDir){ showToast('Elige dirección: compra o venta'); return; }
+
+  const dist = atr * mult;
+  const stopPrice = calcDir === 'long' ? (entry - dist) : (entry + dist);
+  const riskUsd = capital * (risk/100);
+  const stopPct = dist / entry;
+  const exposure = riskUsd / stopPct;
+  const half = exposure / 2;
+
+  const lotsFull = exposure / lotSize;
+  const lotsHalf = half / lotSize;
+
+  document.getElementById('r-stop').textContent = stopPrice.toFixed(5);
+  document.getElementById('r-risk').textContent = '$' + riskUsd.toFixed(2);
+  document.getElementById('r-exposure').textContent = Math.round(exposure).toLocaleString();
+  document.getElementById('r-lots-full').textContent = lotsFull.toFixed(2) + ' lotes';
+  document.getElementById('r-lots-half').textContent = lotsHalf.toFixed(2) + ' lotes (cada una)';
+  document.getElementById('r-full').textContent = Math.round(exposure).toLocaleString() + ' unidades';
+  document.getElementById('r-half').textContent = Math.round(half).toLocaleString() + ' unidades (cada una)';
+  document.getElementById('r-stop2').textContent = stopPrice.toFixed(5);
+  document.getElementById('calc-results').style.display = 'block';
+});
+
+
+// ==================================================================
+// ================== SECCIÓN SP500 PULLBACK =======================
+// ==================================================================
+
+// ---------- IMÁGENES (independientes del formulario FOTSI) ----------
+let spPendingFiles = [];
+let spExistingImages = [];
+
+document.getElementById('sf-images').addEventListener('change', (e)=>{
+  spPendingFiles.push(...[...e.target.files]);
+  renderSpImagePreview();
+  e.target.value = '';
+});
+function renderSpImagePreview(){
+  const box = document.getElementById('sp-img-preview');
+  let html = spExistingImages.map((img,i)=>`
+    <div class="img-thumb">
+      <img src="${img.url}" alt="${img.name}">
+      <button class="rm" onclick="removeSpExistingImage(${i})">✕</button>
+    </div>`).join('');
+  html += spPendingFiles.map((f,i)=>`
+    <div class="img-thumb">
+      <img src="${URL.createObjectURL(f)}" alt="${f.name}">
+      <button class="rm" onclick="removeSpPendingFile(${i})">✕</button>
+    </div>`).join('');
+  box.innerHTML = html;
+}
+function removeSpPendingFile(i){ spPendingFiles.splice(i,1); renderSpImagePreview(); }
+async function removeSpExistingImage(i){
+  const img = spExistingImages[i];
+  await apiDeleteImage(img.url);
+  spExistingImages.splice(i,1);
+  renderSpImagePreview();
+  showToast('Imagen eliminada');
+}
+
+// ---------- CALCULADORA DE STOP (independiente) ----------
+let spCalcDir = 'long';
+document.getElementById('sp-calc-dir-pills').addEventListener('click', (e)=>{
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  spCalcDir = pill.dataset.dir;
+  [...document.querySelectorAll('#sp-calc-dir-pills .pill')].forEach(p=>p.classList.remove('active-long'));
+  pill.classList.add('active-long');
+});
+
+document.getElementById('btn-sp-calc').addEventListener('click', ()=>{
+  const entry = parseFloat(document.getElementById('sc-entry').value.replace(',','.'));
+  const pct = parseFloat(document.getElementById('sc-pct').value.replace(',','.'));
+  const capital = parseFloat(document.getElementById('sc-capital').value);
+  const risk = parseFloat(document.getElementById('sc-risk').value);
+
+  if(isNaN(entry) || isNaN(pct) || isNaN(capital) || isNaN(risk)){
+    showToast('Faltan datos por llenar'); return;
+  }
+
+  const dist = entry * (pct/100);
+  const stopPrice = entry - dist; // siempre compra (regla 1 exige tendencia alcista)
+  const riskUsd = capital * (risk/100);
+  const stopPct = dist / entry;
+  const exposure = riskUsd / stopPct;
+
+  document.getElementById('sr-dist').textContent = dist.toFixed(2);
+  document.getElementById('sr-stop').textContent = stopPrice.toFixed(2);
+  document.getElementById('sr-risk').textContent = '$' + riskUsd.toFixed(2);
+  document.getElementById('sr-exposure').textContent = Math.round(exposure).toLocaleString();
+  document.getElementById('sp-calc-results').style.display = 'block';
+});
+
+// ---------- FORMULARIO DE OPERACIÓN ----------
+let spEditingId = null;
+
+function spClearForm(){
+  ['sf-pair','sf-entry','sf-pct','sf-sl','sf-capital','sf-exitprice','sf-pnl','sf-days','sf-notes',
+   'sf-time-entry','sf-time-exit'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('sf-status').value = 'open';
+  document.getElementById('sf-sma-trend').value = 'si';
+  document.getElementById('sf-exit-reason').value = 'sma5';
+  document.getElementById('sf-broker').value = 'OANDA';
+  document.getElementById('sf-risk').value = '1.5';
+  document.getElementById('sf-date').valueAsDate = new Date();
+  spPendingFiles = [];
+  spExistingImages = [];
+  renderSpImagePreview();
+  spExitEditMode();
+}
+document.getElementById('sf-date').valueAsDate = new Date();
+
+function spExitEditMode(){
+  spEditingId = null;
+  document.getElementById('sp-btn-save').textContent = 'Guardar operación';
+  document.getElementById('sp-form-mode-banner').style.display = 'none';
+}
+
+function spEditTrade(id){
+  const t = trades.find(x=>x.id===id);
+  if(!t) return;
+  spEditingId = id;
+
+  document.getElementById('sf-date').value = t.date || '';
+  document.getElementById('sf-pair').value = t.pair || '';
+  document.getElementById('sf-broker').value = t.broker || 'OANDA';
+  document.getElementById('sf-time-entry').value = t.timeEntry || '';
+  document.getElementById('sf-time-exit').value = t.timeTp1 || '';
+  document.getElementById('sf-sma-trend').value = t.smaTrendOk || 'si';
+  document.getElementById('sf-entry').value = t.entry || '';
+  document.getElementById('sf-pct').value = t.avgPctChange || '';
+  document.getElementById('sf-sl').value = t.sl || '';
+  document.getElementById('sf-capital').value = t.capital || '';
+  document.getElementById('sf-risk').value = t.risk || '1.5';
+  document.getElementById('sf-status').value = t.status || 'open';
+  document.getElementById('sf-exit-reason').value = t.exitReason || 'sma5';
+  document.getElementById('sf-exitprice').value = t.close1 || '';
+  document.getElementById('sf-pnl').value = t.pnl || '';
+  document.getElementById('sf-days').value = t.tp1 || '';
+  document.getElementById('sf-notes').value = t.notes || '';
+
+  spPendingFiles = [];
+  spExistingImages = t.images ? t.images.slice() : [];
+  renderSpImagePreview();
+
+  document.getElementById('sp-btn-save').textContent = '✓ Actualizar esta operación';
+  document.getElementById('sp-form-mode-banner').style.display = 'flex';
+  document.getElementById('sp-form-mode-text').textContent = `Editando: ${t.pair} — ${t.date}`;
+}
+
+document.getElementById('sp-btn-clear').addEventListener('click', spClearForm);
+document.getElementById('sp-btn-cancel-edit').addEventListener('click', spClearForm);
+
+document.getElementById('sp-btn-autocalc').addEventListener('click', ()=>{
+  const entry = parseFloat(document.getElementById('sf-entry').value.replace(',','.'));
+  const exitPrice = parseFloat(document.getElementById('sf-exitprice').value.replace(',','.'));
+  const capital = parseFloat(document.getElementById('sf-capital').value);
+  const risk = parseFloat(document.getElementById('sf-risk').value);
+  const sl = parseFloat(document.getElementById('sf-sl').value.replace(',','.'));
+
+  if(isNaN(entry) || isNaN(exitPrice) || isNaN(capital) || isNaN(risk) || isNaN(sl)){
+    showToast('Faltan datos: entrada, salida, stop, capital o riesgo'); return;
+  }
+
+  const stopDist = Math.abs(entry - sl);
+  const stopPct = stopDist / entry;
+  const riskUsd = capital * (risk/100);
+  const exposure = riskUsd / stopPct;
+
+  const movePct = (exitPrice - entry) / entry; // siempre long
+  const total = exposure * movePct;
+
+  document.getElementById('sf-pnl').value = total.toFixed(2);
+  document.getElementById('sf-status').value = total > 0 ? 'win' : (total < 0 ? 'loss' : 'win');
+  showToast(`Calculado: ${total>=0?'+':''}$${total.toFixed(2)}`);
+});
+
+document.getElementById('sp-btn-save').addEventListener('click', async ()=>{
+  const pair = document.getElementById('sf-pair').value.trim();
+  if(!pair){ showToast('Falta el instrumento'); return; }
+
+  const tradeData = {
+    strategy: 'sp500',
+    date: document.getElementById('sf-date').value,
+    pair: pair.toUpperCase(),
+    tf: 'D',
+    broker: document.getElementById('sf-broker').value,
+    timeEntry: document.getElementById('sf-time-entry').value,
+    timeTp1: document.getElementById('sf-time-exit').value,
+    dir: 'long',
+    smaTrendOk: document.getElementById('sf-sma-trend').value,
+    entry: document.getElementById('sf-entry').value.trim(),
+    avgPctChange: document.getElementById('sf-pct').value.trim(),
+    sl: document.getElementById('sf-sl').value.trim(),
+    close1: document.getElementById('sf-exitprice').value.trim(),
+    capital: document.getElementById('sf-capital').value.trim(),
+    risk: document.getElementById('sf-risk').value,
+    status: document.getElementById('sf-status').value,
+    exitReason: document.getElementById('sf-exit-reason').value,
+    tp1: document.getElementById('sf-days').value.trim(),
+    pnl: document.getElementById('sf-pnl').value.trim(),
+    notes: document.getElementById('sf-notes').value.trim(),
+  };
+
+  try{
+    let tradeId = spEditingId;
+    if(spEditingId){
+      await apiUpdateTrade(spEditingId, tradeData);
+    } else {
+      const res = await apiCreateTrade(tradeData);
+      tradeId = res.id;
+    }
+    if(spPendingFiles.length){
+      await apiUploadImages(tradeId, spPendingFiles);
+    }
+    spClearForm();
+    await loadTrades();
+    showToast(spEditingId ? 'Operación actualizada' : 'Operación guardada');
+  }catch(e){
+    console.error(e);
+    showToast('Error al guardar — revisa que el servidor esté corriendo');
+  }
+});
+
+document.getElementById('sp-filter-status').addEventListener('change', renderSP500);
+document.getElementById('sp-filter-pair').addEventListener('change', renderSP500);
+
+async function spDeleteTrade(id){
+  await apiDeleteTrade(id);
+  await loadTrades();
+  showToast('Operación eliminada');
+}
+function spToggleCard(id){
+  const el = document.querySelector(`#sp-log-container .trade-card[data-id="${id}"]`);
+  if(el) el.classList.toggle('open');
+}
+
+// ---------- CALENDARIO SP500 (independiente) ----------
+let spCalMonth = new Date().getMonth();
+let spCalYear = new Date().getFullYear();
+
+function renderSpCalendar(){
+  document.getElementById('sp-cal-label').textContent = `${MONTH_NAMES[spCalMonth]} ${spCalYear}`;
+  const pnlByDate = {};
+  trades.filter(t=>t.strategy==='sp500').forEach(t=>{
+    if(t.status !== 'open' && t.pnl !== '' && !isNaN(parseFloat(t.pnl))){
+      pnlByDate[t.date] = (pnlByDate[t.date]||0) + parseFloat(t.pnl);
+    }
+  });
+  const firstDay = new Date(spCalYear, spCalMonth, 1);
+  const daysInMonth = new Date(spCalYear, spCalMonth+1, 0).getDate();
+  let startWeekday = firstDay.getDay() - 1;
+  if(startWeekday < 0) startWeekday = 6;
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let html = DOW_NAMES.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for(let i=0;i<startWeekday;i++){ html += `<div class="cal-cell empty"></div>`; }
+  for(let day=1; day<=daysInMonth; day++){
+    const dateStr = `${spCalYear}-${String(spCalMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const pnl = pnlByDate[dateStr];
+    let cls = 'cal-cell';
+    if(pnl !== undefined){ cls += pnl >= 0 ? ' has-data win-day' : ' has-data loss-day'; }
+    if(dateStr === todayStr) cls += ' today';
+    const pnlHtml = pnl !== undefined ? `<div class="cal-pnl ${pnl>=0?'up':'down'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</div>` : '';
+    html += `<div class="${cls}"><div class="cal-num">${day}</div>${pnlHtml}</div>`;
+  }
+  document.getElementById('sp-cal-grid').innerHTML = html;
+}
+document.getElementById('sp-cal-prev').addEventListener('click', ()=>{ spCalMonth--; if(spCalMonth<0){spCalMonth=11; spCalYear--;} renderSpCalendar(); });
+document.getElementById('sp-cal-next').addEventListener('click', ()=>{ spCalMonth++; if(spCalMonth>11){spCalMonth=0; spCalYear++;} renderSpCalendar(); });
+
+// ---------- RENDER PRINCIPAL SP500 ----------
+function renderSP500(){
+  const strades = trades.filter(t=>t.strategy==='sp500');
+  renderSpCalendar();
+
+  if(activeTab==='sp500'){
+    document.getElementById('tk-total').textContent = strades.length;
+    document.getElementById('tk-open').textContent = strades.filter(t=>t.status==='open').length;
+  }
+
+  const closed = strades.filter(t=>t.status!=='open' && t.pnl!=='' && !isNaN(parseFloat(t.pnl)));
+  const wins = closed.filter(t=>parseFloat(t.pnl)>0);
+  const losses = closed.filter(t=>parseFloat(t.pnl)<0);
+  const net = closed.reduce((a,t)=>a+parseFloat(t.pnl),0);
+  const wr = closed.length ? Math.round((wins.length/closed.length)*100) : null;
+
+  const pnlEl = document.getElementById('sp-s-pnl');
+  pnlEl.textContent = (net>=0?'+$':'-$') + Math.abs(net).toFixed(2);
+  pnlEl.className = 'val ' + (net>0?'up':net<0?'down':'');
+  document.getElementById('sp-s-wr').textContent = wr===null ? '—' : wr + '%';
+  document.getElementById('sp-s-count').textContent = strades.length;
+  document.getElementById('sp-s-gp').textContent = `${wins.length} / ${losses.length}`;
+
+  const spInitialCapital = parseFloat(localStorage.getItem('sp500-initial-capital'));
+  const spRoiEl = document.getElementById('sp-s-roi');
+  if(!isNaN(spInitialCapital) && spInitialCapital > 0){
+    const roi = (net / spInitialCapital) * 100;
+    spRoiEl.textContent = (roi>=0?'+':'') + roi.toFixed(2) + '%';
+    spRoiEl.className = 'val ' + (roi>0?'up':roi<0?'down':'');
+    document.getElementById('sp-s-cap').textContent = '$' + (spInitialCapital + net).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  } else {
+    spRoiEl.textContent = '—'; spRoiEl.className = 'val';
+    document.getElementById('sp-s-cap').textContent = '—';
+  }
+
+  // ---- Poblar filtro de instrumentos (con conteo) ----
+  const pairCounts = {};
+  strades.forEach(t=>{ if(t.pair) pairCounts[t.pair] = (pairCounts[t.pair]||0) + 1; });
+  const pairSelect = document.getElementById('sp-filter-pair');
+  const currentPairVal = pairSelect.value || 'all';
+  const sortedPairs = Object.keys(pairCounts).sort();
+  pairSelect.innerHTML = '<option value="all">Todos los instrumentos</option>' +
+    sortedPairs.map(p=>`<option value="${p}">${p} (${pairCounts[p]})</option>`).join('');
+  pairSelect.value = sortedPairs.includes(currentPairVal) ? currentPairVal : 'all';
+
+  const filter = document.getElementById('sp-filter-status').value;
+  const filterPair = pairSelect.value;
+  let list = filter==='all' ? strades : strades.filter(t=>t.status===filter);
+  if(filterPair !== 'all') list = list.filter(t=>t.pair===filterPair);
+  const container = document.getElementById('sp-log-container');
+  if(!list.length){
+    container.innerHTML = `<div class="empty-state"><div class="big">Sin operaciones registradas todavía</div>Agrega tu primera operación de SP500 arriba.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(t=>{
+    const pnlNum = fmtMoney(t.pnl);
+    let pnlHtml;
+    if(t.status==='open'){ pnlHtml = `<div class="t-pnl pending">⏳ abierta</div>`; }
+    else if(pnlNum){ pnlHtml = `<div class="t-pnl ${parseFloat(t.pnl)>=0?'up':'down'}">${pnlNum}</div>`; }
+    else { pnlHtml = `<div class="t-pnl" style="color:var(--muted);font-size:11px;">—</div>`; }
+
+    const exitReasonLabel = {sma5:'Cerró sobre SMA5', stop:'Tocó el stop', manual:'Cierre manual'}[t.exitReason] || '—';
+
+    return `
+    <div class="trade-card" data-id="${t.id}">
+      <div class="trade-top" onclick="spToggleCard('${t.id}')">
+        <div class="t-date">${t.date||'—'}</div>
+        <div class="t-pair"><b>${t.pair}</b><span class="dir-tag long">COMPRA</span></div>
+        <div class="t-mini">${t.broker||'—'}</div>
+        <div class="t-mini">${t.smaTrendOk==='si'?'✓ SMA200':''}</div>
+        <div class="t-mini"></div>
+        ${pnlHtml}
+        <div class="chev">▾</div>
+      </div>
+      <div class="trade-detail">
+        <div class="detail-inner">
+          <div class="dcol">
+            <div class="dlbl">Identificación</div>
+            <div class="dline"><span>Instrumento</span><span>${t.pair||'—'}</span></div>
+            <div class="dline"><span>Proveedor</span><span>${t.broker||'—'}</span></div>
+            <div class="dline"><span>Tendencia SMA200</span><span>${t.smaTrendOk==='si'?'Confirmada':'No'}</span></div>
+            <div class="dline"><span>Hora entrada / salida</span><span>${t.timeEntry||'—'} / ${t.timeTp1||'—'}</span></div>
+          </div>
+          <div class="dcol">
+            <div class="dlbl">Gestión de riesgo</div>
+            <div class="dline"><span>Entrada</span><span>${t.entry||'—'}</span></div>
+            <div class="dline"><span>% cambio prom. 14d</span><span>${t.avgPctChange||'—'}</span></div>
+            <div class="dline"><span>Stop loss</span><span>${t.sl||'—'}</span></div>
+            <div class="dline"><span>Capital</span><span>${t.capital?'$'+t.capital:'—'}</span></div>
+          </div>
+          <div class="dcol">
+            <div class="dlbl">Resultado</div>
+            <div class="dline"><span>Precio de salida</span><span>${t.close1||'—'}</span></div>
+            <div class="dline"><span>Motivo de salida</span><span>${exitReasonLabel}</span></div>
+            <div class="dline"><span>Días que tardó</span><span>${t.tp1||'—'}</span></div>
+          </div>
+          <div class="notes ${t.notes?'':'empty'}">${t.notes || 'Sin notas para esta operación.'}</div>
+          ${t.images && t.images.length ? `<div class="detail-images">${t.images.map(img=>`<img src="${img.url}" alt="${img.name}" onclick="event.stopPropagation(); openLightbox('${img.url}')">`).join('')}</div>` : ''}
+          <div class="detail-foot">
+            <button class="btn-ghost" style="padding:6px 12px;font-size:11px;" onclick="event.stopPropagation(); spEditTrade('${t.id}')">✎ Editar operación</button>
+            <button class="btn-danger" onclick="event.stopPropagation(); spDeleteTrade('${t.id}')">Eliminar operación</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+
+// ---------- INICIO ----------
+loadTrades();
+loadPlan();
+</script>
+</body>
+</html>
